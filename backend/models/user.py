@@ -1,5 +1,6 @@
-from . import db
 from datetime import datetime, timezone
+
+from db.db import db
 
 
 class User(db.Model):
@@ -9,7 +10,7 @@ class User(db.Model):
     password = db.Column(db.String(150), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
-    # relationships
+    # Relationships
     groups = db.relationship('GroupMember', back_populates='user')
     sent_invitations = db.relationship(
         'Invitation',

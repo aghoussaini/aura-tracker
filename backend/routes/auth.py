@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token
 
-from models import db
+from db.db import db
 from models.user import User
 
 auth_bp = Blueprint('auth_routes', __name__)
@@ -48,6 +48,7 @@ def login():
         return jsonify({'access_token': access_token}), 200
 
     return jsonify({'error': 'Invalid credentials'}), 401
+
 
 @auth_bp.route('/signout', methods=['POST'])
 def signout():
