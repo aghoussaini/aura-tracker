@@ -4,7 +4,7 @@ This repository contains a Flask backend and a React frontend for a simple authe
 
 ## Backend
 
-The backend is located in `backend/` and uses Flask with SQLAlchemy. It exposes `/signup`, `/login`, and `/signout` endpoints.
+The backend is located in `backend/` and uses Flask with SQLAlchemy. It exposes `/signup`, `/login`, and `/signout` endpoints. When signing up, provide a username, first name, last name, password and password confirmation.
 
 To run the backend:
 
