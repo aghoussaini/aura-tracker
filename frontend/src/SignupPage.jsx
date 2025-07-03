@@ -5,6 +5,8 @@ const API_URL = 'http://localhost:5000'
 
 export default function SignupPage() {
   const [username, setUsername] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [message, setMessage] = useState('')
@@ -20,7 +22,13 @@ export default function SignupPage() {
       const res = await fetch(`${API_URL}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, confirm_password: confirm })
+        body: JSON.stringify({
+          username,
+          first_name: firstName,
+          last_name: lastName,
+          password,
+          confirm_password: confirm
+        })
       })
       const data = await res.json()
       if (res.ok) {
@@ -45,6 +53,26 @@ export default function SignupPage() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="first-name">First Name</Label>
+          <Input
+            id="first-name"
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="last-name">Last Name</Label>
+          <Input
+            id="last-name"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             required
           />
         </div>
