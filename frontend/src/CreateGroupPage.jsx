@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext.jsx'
-import { Button, Input, Label } from './components/ui'
+import {
+  Button,
+  Input,
+  Label,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  useToast,
+} from './components/ui'
 
 const API_URL = 'http://localhost:5000'
 
@@ -11,6 +20,7 @@ export default function CreateGroupPage() {
   const [name, setName] = useState('')
   const [invitees, setInvitees] = useState('')
   const [message, setMessage] = useState('')
+  const { addToast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -30,17 +40,24 @@ export default function CreateGroupPage() {
       const data = await res.json()
       if (res.ok) {
         navigate('/groups')
+        addToast({ title: 'Group created' })
       } else {
-        setMessage(data.error || 'Error creating group')
+        const msg = data.error || 'Error creating group'
+        setMessage(msg)
+        addToast({ title: 'Failed to create group', description: msg })
       }
     } catch {
       setMessage('Network error')
+      addToast({ title: 'Network error' })
     }
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Create Group</h2>
+    <Card className="space-y-4">
+      <CardHeader>
+        <CardTitle>Create Group</CardTitle>
+      </CardHeader>
+      <CardContent>
       <form onSubmit={handleSubmit} className="space-y-2">
         <div className="space-y-1">
           <Label htmlFor="name">Group Name</Label>
@@ -52,7 +69,8 @@ export default function CreateGroupPage() {
         </div>
         <Button type="submit">Create</Button>
       </form>
+      </CardContent>
       {message && <p className="text-sm text-red-500">{message}</p>}
-    </div>
+    </Card>
   )
 }

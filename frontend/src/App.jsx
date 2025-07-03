@@ -5,6 +5,7 @@ import GroupsPage from './GroupsPage.jsx'
 import CreateGroupPage from './CreateGroupPage.jsx'
 import InvitationsPage from './InvitationsPage.jsx'
 import { AuthProvider, useAuth } from './AuthContext.jsx'
+import { ToastProvider } from './components/ui'
 
 function Navigation() {
   const { token, setToken } = useAuth()
@@ -29,18 +30,20 @@ function Navigation() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <div className="mx-auto max-w-md p-4">
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/groups" element={<GroupsPage />} />
-            <Route path="/groups/new" element={<CreateGroupPage />} />
-            <Route path="/invitations" element={<InvitationsPage />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <div className="mx-auto max-w-md p-4">
+            <Navigation />
+            <Routes>
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/groups" element={<GroupsPage />} />
+              <Route path="/groups/new" element={<CreateGroupPage />} />
+              <Route path="/invitations" element={<InvitationsPage />} />
+            </Routes>
+          </div>
+        </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   )
 }

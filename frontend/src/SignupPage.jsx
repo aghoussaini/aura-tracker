@@ -1,5 +1,14 @@
 import { useState } from 'react'
-import { Button, Input, Label } from './components/ui'
+import {
+  Button,
+  Input,
+  Label,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  useToast,
+} from './components/ui'
 
 const API_URL = 'http://localhost:5000'
 
@@ -10,12 +19,14 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [message, setMessage] = useState('')
+  const { addToast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setMessage('')
     if (password !== confirm) {
       setMessage('Passwords do not match')
+      addToast({ title: 'Error', description: 'Passwords do not match' })
       return
     }
     try {
@@ -33,18 +44,25 @@ export default function SignupPage() {
       const data = await res.json()
       if (res.ok) {
         setMessage('User created successfully')
+        addToast({ title: 'User created successfully' })
       } else {
-        setMessage(data.error || 'Error signing up')
+        const msg = data.error || 'Error signing up'
+        setMessage(msg)
+        addToast({ title: 'Sign up failed', description: msg })
       }
     } catch (err) {
       console.error(err)
       setMessage('Network error')
+      addToast({ title: 'Network error' })
     }
   }
 
   return (
-    <div className="auth-container space-y-4">
-      <h2 className="text-xl font-semibold">Sign Up</h2>
+    <Card className="auth-container space-y-4">
+      <CardHeader>
+        <CardTitle>Sign Up</CardTitle>
+      </CardHeader>
+      <CardContent>
       <form onSubmit={handleSubmit} className="space-y-2">
         <div className="space-y-1">
           <Label htmlFor="username">Username</Label>
@@ -100,7 +118,8 @@ export default function SignupPage() {
         </div>
         <Button type="submit">Sign Up</Button>
       </form>
+      </CardContent>
       {message && <p className="text-sm text-red-500">{message}</p>}
-    </div>
+    </Card>
   )
 }

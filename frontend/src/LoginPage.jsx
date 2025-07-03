@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Input, Label } from './components/ui'
+import {
+  Button,
+  Input,
+  Label,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  useToast,
+} from './components/ui'
 import { useAuth } from './AuthContext.jsx'
 
 const API_URL = 'http://localhost:5000'
@@ -11,6 +20,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const { addToast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -24,25 +34,32 @@ export default function LoginPage() {
       const data = await res.json()
       if (res.ok) {
         setToken(data.access_token)
+        addToast({ title: 'Logged in successfully' })
         navigate('/groups')
       } else {
-        setMessage(data.error || 'Error logging in')
+        const msg = data.error || 'Error logging in'
+        setMessage(msg)
+        addToast({ title: 'Login failed', description: msg })
       }
     } catch (err) {
       console.error(err)
       setMessage('Network error')
+      addToast({ title: 'Network error' })
     }
   }
 
   return (
-    <div className="auth-container space-y-4">
-      <h2 className="text-xl font-semibold">Login</h2>
-      <form onSubmit={handleSubmit} className="space-y-2">
-        <div className="space-y-1">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            placeholder="Username"
+    <Card className="auth-container space-y-4">
+      <CardHeader>
+        <CardTitle>Login</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <div className="space-y-1">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -60,8 +77,9 @@ export default function LoginPage() {
           />
         </div>
         <Button type="submit">Login</Button>
-      </form>
+        </form>
+      </CardContent>
       {message && <p className="text-sm text-red-500">{message}</p>}
-    </div>
+    </Card>
   )
 }
