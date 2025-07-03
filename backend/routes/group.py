@@ -8,6 +8,24 @@ from models import User, Group, GroupMember, Invitation, AuraTransaction, AuraTr
 group_bp = Blueprint('group_routes', __name__)
 
 
+@group_bp.route('/groups', methods=['GET'])
+@jwt_required()
+def list_groups():
+    """Return groups the current user belongs to."""
+    user = User.query.filter_by(username=get_jwt_identity()).first()
+    if not user:
+        return jsonify({'error': 'Invalid user'}), 400
+
+    groups = (
+        Group.query.join(GroupMember, Group.id == GroupMember.group_id)
+        .filter(GroupMember.user_id == user.id)
+        .all()
+    )
+
+    result = [{'id': g.id, 'name': g.name} for g in groups]
+    return jsonify(result), 200
+
+
 @group_bp.route('/groups', methods=['POST'])
 @jwt_required()
 def create_group():
@@ -68,6 +86,27 @@ def invite_user(group_id):
     db.session.add(invitation)
     db.session.commit()
     return jsonify({'message': 'Invitation sent'}), 201
+
+
+@group_bp.route('/invitations', methods=['GET'])
+@jwt_required()
+def list_invitations():
+    """List pending invitations for the current user."""
+    user = User.query.filter_by(username=get_jwt_identity()).first()
+    if not user:
+        return jsonify({'error': 'Invalid user'}), 400
+
+    invitations = Invitation.query.filter_by(invited_user_id=user.id, status='pending').all()
+    result = [
+        {
+            'id': inv.id,
+            'group_id': inv.group_id,
+            'group_name': inv.group.name,
+            'inviter': inv.inviter.username,
+        }
+        for inv in invitations
+    ]
+    return jsonify(result), 200
 
 
 @group_bp.route('/invitations/<int:invitation_id>', methods=['POST'])
