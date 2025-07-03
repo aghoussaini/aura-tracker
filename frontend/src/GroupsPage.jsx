@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './AuthContext.jsx'
-import { Button } from './components/ui'
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from './components/ui'
 
 const API_URL = 'http://localhost:5000'
 
@@ -30,18 +36,20 @@ export default function GroupsPage() {
   }, [token])
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between">
-        <h2 className="text-xl font-semibold">Your Groups</h2>
+    <Card className="space-y-4">
+      <CardHeader className="flex justify-between">
+        <CardTitle>Your Groups</CardTitle>
         <Link to="/groups/new" className="text-blue-600">Create Group</Link>
-      </div>
+      </CardHeader>
+      <CardContent>
       {groups.length === 0 && <p>No groups yet.</p>}
       <ul className="space-y-2">
         {groups.map((g) => (
           <li key={g.id} className="rounded border p-2">{g.name}</li>
         ))}
       </ul>
+      </CardContent>
       {message && <p className="text-sm text-red-500">{message}</p>}
-    </div>
+    </Card>
   )
 }

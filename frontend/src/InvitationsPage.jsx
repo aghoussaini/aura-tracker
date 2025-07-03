@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from './AuthContext.jsx'
-import { Button } from './components/ui'
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  useToast,
+} from './components/ui'
 
 const API_URL = 'http://localhost:5000'
 
@@ -8,6 +15,7 @@ export default function InvitationsPage() {
   const { token } = useAuth()
   const [invitations, setInvitations] = useState([])
   const [message, setMessage] = useState('')
+  const { addToast } = useToast()
 
   async function load() {
     try {
@@ -17,10 +25,13 @@ export default function InvitationsPage() {
       if (res.ok) {
         setInvitations(await res.json())
       } else {
-        setMessage('Error loading invitations')
+        const msg = 'Error loading invitations'
+        setMessage(msg)
+        addToast({ title: msg })
       }
     } catch {
       setMessage('Network error')
+      addToast({ title: 'Network error' })
     }
   }
 
@@ -41,15 +52,20 @@ export default function InvitationsPage() {
       })
       if (res.ok) {
         setInvitations((prev) => prev.filter((i) => i.id !== id))
+        addToast({ title: action === 'accept' ? 'Invitation accepted' : 'Invitation rejected' })
       }
     } catch {
       setMessage('Network error')
+      addToast({ title: 'Network error' })
     }
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Invitations</h2>
+    <Card className="space-y-4">
+      <CardHeader>
+        <CardTitle>Invitations</CardTitle>
+      </CardHeader>
+      <CardContent>
       {invitations.length === 0 && <p>No pending invitations.</p>}
       <ul className="space-y-2">
         {invitations.map((inv) => (
@@ -66,7 +82,8 @@ export default function InvitationsPage() {
           </li>
         ))}
       </ul>
+      </CardContent>
       {message && <p className="text-sm text-red-500">{message}</p>}
-    </div>
+    </Card>
   )
 }
