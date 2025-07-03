@@ -1,9 +1,13 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button, Input, Label } from './components/ui'
+import { useAuth } from './AuthContext.jsx'
 
 const API_URL = 'http://localhost:5000'
 
 export default function LoginPage() {
+  const { setToken } = useAuth()
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -19,7 +23,8 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (res.ok) {
-        setMessage('Logged in! Token: ' + data.access_token)
+        setToken(data.access_token)
+        navigate('/groups')
       } else {
         setMessage(data.error || 'Error logging in')
       }
