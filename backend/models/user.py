@@ -9,6 +9,7 @@ class User(db.Model):
     first_name = db.Column(db.String(150), nullable=False)
     last_name = db.Column(db.String(150), nullable=False)
     username = db.Column(db.String(150), nullable=False, unique=True)
+    device_id = db.Column(db.String(150), nullable=False, unique=True)
     password = db.Column(db.String(150), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     aura_points = db.Column(db.Integer, default=0)

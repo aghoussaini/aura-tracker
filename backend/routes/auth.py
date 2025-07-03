@@ -26,10 +26,11 @@ def signup():
     username = data.get('username')
     first_name = data.get('first_name')
     last_name = data.get('last_name')
+    device_id = data.get('device_id')
     password = data.get('password')
     confirm_password = data.get('confirm_password')
 
-    if not username or not first_name or not last_name or not password or not confirm_password:
+    if not username or not first_name or not last_name or not device_id or not password or not confirm_password:
         return jsonify({'error': 'All fields are required'}), 400
 
     if password != confirm_password:
@@ -39,11 +40,15 @@ def signup():
     if user:
         return jsonify({'error': 'User already exists'}), 400
 
+    if User.query.filter_by(device_id=device_id).first():
+        return jsonify({'error': 'Device already registered'}), 400
+
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     new_user = User(
         username=username,
         first_name=first_name,
         last_name=last_name,
+        device_id=device_id,
         password=hashed_password,
     )
     db.session.add(new_user)

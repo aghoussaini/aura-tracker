@@ -1,6 +1,6 @@
 # Aura Tracker Frontend
 
-This React app provides simple login and sign up forms for the Aura Tracker API built with shadcn and Radix UI. The sign up form now collects first and last name in addition to a username and password.
+This React app provides simple login and sign up forms for the Aura Tracker API built with shadcn and Radix UI. A unique device ID is generated in local storage and sent during sign up so only one account can be created per device.
 
 ## Development
 
