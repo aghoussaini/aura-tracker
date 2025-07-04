@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Button,
   Input,
@@ -21,6 +21,14 @@ export default function SignupPage() {
   const [message, setMessage] = useState('')
   const { addToast } = useToast()
 
+  useEffect(() => {
+    let id = localStorage.getItem('device_id')
+    if (!id) {
+      id = crypto.randomUUID()
+      localStorage.setItem('device_id', id)
+    }
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setMessage('')
@@ -30,6 +38,11 @@ export default function SignupPage() {
       return
     }
     try {
+      let deviceId = localStorage.getItem('device_id')
+      if (!deviceId) {
+        deviceId = crypto.randomUUID()
+        localStorage.setItem('device_id', deviceId)
+      }
       const res = await fetch(`${API_URL}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -37,6 +50,7 @@ export default function SignupPage() {
           username,
           first_name: firstName,
           last_name: lastName,
+          device_id: deviceId,
           password,
           confirm_password: confirm
         })
