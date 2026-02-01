@@ -2,21 +2,36 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import LoginPage from './LoginPage.jsx'
 import SignupPage from './SignupPage.jsx'
 import GroupsPage from './GroupsPage.jsx'
+import GroupDetailPage from './GroupDetailPage.jsx'
 import CreateGroupPage from './CreateGroupPage.jsx'
 import InvitationsPage from './InvitationsPage.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import { AuthProvider, useAuth } from './AuthContext.jsx'
 import { ToastProvider } from './components/ui'
+import { API_URL } from './config.js'
 
 function Navigation() {
   const { token, setToken } = useAuth()
+
+  async function handleSignOut() {
+    try {
+      await fetch(`${API_URL}/signout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    } catch {
+      // Ignore network errors on sign out
+    }
+    setToken('')
+  }
+
   return (
     <nav className="mb-4 flex gap-4 text-blue-600">
       {token ? (
         <>
           <Link to="/groups">Groups</Link>
           <Link to="/invitations">Invitations</Link>
-          <button onClick={() => setToken('')} className="text-red-600">Sign Out</button>
+          <button onClick={handleSignOut} className="text-red-600">Sign Out</button>
         </>
       ) : (
         <>
@@ -40,6 +55,7 @@ export default function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
               <Route path="/groups/new" element={<ProtectedRoute><CreateGroupPage /></ProtectedRoute>} />
+              <Route path="/groups/:groupId" element={<ProtectedRoute><GroupDetailPage /></ProtectedRoute>} />
               <Route path="/invitations" element={<ProtectedRoute><InvitationsPage /></ProtectedRoute>} />
             </Routes>
           </div>
