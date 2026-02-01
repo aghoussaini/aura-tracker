@@ -34,6 +34,8 @@ def create_app(config_class=Config):
     return app_
 
 
+# Create app instance for gunicorn
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(host='0.0.0.0', debug=True)
