@@ -11,8 +11,7 @@ import {
   useToast,
 } from './components/ui'
 import { useAuth } from './AuthContext.jsx'
-
-const API_URL = 'http://localhost:5000'
+import { API_URL } from './config.js'
 
 export default function LoginPage() {
   const { setToken } = useAuth()

@@ -11,8 +11,7 @@ import {
   CardContent,
   useToast,
 } from './components/ui'
-
-const API_URL = 'http://localhost:5000'
+import { API_URL } from './config.js'
 
 export default function CreateGroupPage() {
   const { token } = useAuth()

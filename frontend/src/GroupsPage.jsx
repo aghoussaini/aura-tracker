@@ -8,8 +8,7 @@ import {
   CardTitle,
   CardContent,
 } from './components/ui'
-
-const API_URL = 'http://localhost:5000'
+import { API_URL } from './config.js'
 
 export default function GroupsPage() {
   const { token } = useAuth()

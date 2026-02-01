@@ -4,6 +4,7 @@ import SignupPage from './SignupPage.jsx'
 import GroupsPage from './GroupsPage.jsx'
 import CreateGroupPage from './CreateGroupPage.jsx'
 import InvitationsPage from './InvitationsPage.jsx'
+import ProtectedRoute from './ProtectedRoute.jsx'
 import { AuthProvider, useAuth } from './AuthContext.jsx'
 import { ToastProvider } from './components/ui'
 
@@ -37,9 +38,9 @@ export default function App() {
             <Routes>
               <Route path="/" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
-              <Route path="/groups" element={<GroupsPage />} />
-              <Route path="/groups/new" element={<CreateGroupPage />} />
-              <Route path="/invitations" element={<InvitationsPage />} />
+              <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
+              <Route path="/groups/new" element={<ProtectedRoute><CreateGroupPage /></ProtectedRoute>} />
+              <Route path="/invitations" element={<ProtectedRoute><InvitationsPage /></ProtectedRoute>} />
             </Routes>
           </div>
         </BrowserRouter>
