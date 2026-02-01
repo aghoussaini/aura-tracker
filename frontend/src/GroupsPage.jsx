@@ -8,8 +8,7 @@ import {
   CardTitle,
   CardContent,
 } from './components/ui'
-
-const API_URL = 'http://localhost:5000'
+import { API_URL } from './config.js'
 
 export default function GroupsPage() {
   const { token } = useAuth()
@@ -45,7 +44,11 @@ export default function GroupsPage() {
       {groups.length === 0 && <p>No groups yet.</p>}
       <ul className="space-y-2">
         {groups.map((g) => (
-          <li key={g.id} className="rounded border p-2">{g.name}</li>
+          <li key={g.id} className="rounded border p-2">
+            <Link to={`/groups/${g.id}`} className="text-blue-600 hover:underline">
+              {g.name}
+            </Link>
+          </li>
         ))}
       </ul>
       </CardContent>

@@ -88,6 +88,62 @@ def invite_user(group_id):
     return jsonify({'message': 'Invitation sent'}), 201
 
 
+@group_bp.route('/groups/<int:group_id>', methods=['GET'])
+@jwt_required()
+def get_group_detail(group_id):
+    """Get group details including members and pending transactions."""
+    current_user = User.query.filter_by(username=get_jwt_identity()).first()
+    if not current_user:
+        return jsonify({'error': 'Invalid user'}), 400
+
+    membership = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+    if not membership:
+        return jsonify({'error': 'Not a member of this group'}), 403
+
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+
+    # Get all members
+    members = []
+    memberships = GroupMember.query.filter_by(group_id=group_id).all()
+    for m in memberships:
+        user = User.query.get(m.user_id)
+        members.append({
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'aura_points': user.aura_points,
+        })
+
+    # Get pending transactions
+    pending_transactions = AuraTransaction.query.filter_by(group_id=group_id, status='pending').all()
+    transactions = []
+    for t in pending_transactions:
+        giver = User.query.get(t.giver_id)
+        target = User.query.get(t.target_user_id)
+        user_vote = AuraTransactionVote.query.filter_by(transaction_id=t.id, user_id=current_user.id).first()
+        transactions.append({
+            'id': t.id,
+            'giver': giver.username,
+            'target': target.username,
+            'amount': t.amount,
+            'reason': t.reason,
+            'approvals': t.approvals_count or 0,
+            'rejections': t.rejections_count or 0,
+            'user_voted': user_vote is not None,
+            'user_vote': user_vote.approval if user_vote else None,
+        })
+
+    return jsonify({
+        'id': group.id,
+        'name': group.name,
+        'members': members,
+        'pending_transactions': transactions,
+        'current_user': current_user.username,
+    }), 200
+
+
 @group_bp.route('/invitations', methods=['GET'])
 @jwt_required()
 def list_invitations():
