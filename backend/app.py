@@ -1,17 +1,9 @@
 from dotenv import load_dotenv
 from flask import Flask
-from flask_bcrypt import Bcrypt
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager
-from flask_migrate import Migrate
 
 from config import Config
 from db.db import db
-
-bcrypt = Bcrypt()
-jwt = JWTManager()
-migrate = Migrate()
-cors = CORS()
+from extensions import bcrypt, jwt, migrate, cors
 
 load_dotenv()
 
@@ -25,7 +17,7 @@ def create_app(config_class=Config):
     bcrypt.init_app(app_)
     jwt.init_app(app_)
     migrate.init_app(app_, db)
-    cors.init_app(app_)
+    cors.init_app(app_, resources={r"/*": {"origins": "*"}})
 
     from routes import blueprints
     for blueprint in blueprints:

@@ -22,7 +22,14 @@ def list_groups():
         .all()
     )
 
-    result = [{'id': g.id, 'name': g.name} for g in groups]
+    result = []
+    for g in groups:
+        member_count = GroupMember.query.filter_by(group_id=g.id).count()
+        result.append({
+            'id': g.id,
+            'name': g.name,
+            'member_count': member_count,
+        })
     return jsonify(result), 200
 
 
@@ -40,7 +47,10 @@ def create_group():
     if not current_user:
         return jsonify({'error': 'Invalid user'}), 400
 
-    total_members = len(set(invitees + [current_user.username]))
+    # Filter out self-invitations
+    invitees = [u for u in invitees if u != current_user.username]
+
+    total_members = len(set(invitees)) + 1  # +1 for creator
     if total_members < 3:
         return jsonify({'error': 'Group must have at least 3 members including invites'}), 400
 
@@ -60,6 +70,31 @@ def create_group():
     return jsonify({'message': 'Group created', 'group_id': group.id}), 201
 
 
+@group_bp.route('/groups/<int:group_id>', methods=['PATCH'])
+@jwt_required()
+def update_group(group_id):
+    """Update group details. Only creator can update."""
+    data = request.get_json()
+    name = data.get('name')
+
+    current_user = User.query.filter_by(username=get_jwt_identity()).first()
+    if not current_user:
+        return jsonify({'error': 'Invalid user'}), 400
+
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+
+    if group.creator_id != current_user.id:
+        return jsonify({'error': 'Only the group creator can edit the group'}), 403
+
+    if name:
+        group.name = name
+
+    db.session.commit()
+    return jsonify({'message': 'Group updated', 'name': group.name}), 200
+
+
 @group_bp.route('/groups/<int:group_id>/invite', methods=['POST'])
 @jwt_required()
 def invite_user(group_id):
@@ -77,6 +112,14 @@ def invite_user(group_id):
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({'error': 'User not found'}), 404
+
+    # Prevent inviting yourself
+    if user.id == current_user.id:
+        return jsonify({'error': 'You cannot invite yourself'}), 400
+
+    # Check if already a member
+    if GroupMember.query.filter_by(group_id=group_id, user_id=user.id).first():
+        return jsonify({'error': 'User is already a member'}), 400
 
     existing = Invitation.query.filter_by(group_id=group_id, invited_user_id=user.id, status='pending').first()
     if existing:
@@ -126,6 +169,8 @@ def get_group_detail(group_id):
         transactions.append({
             'id': t.id,
             'giver': giver.username,
+            'giver_first_name': giver.first_name,
+            'giver_last_name': giver.last_name,
             'target': target.username,
             'amount': t.amount,
             'reason': t.reason,
@@ -138,6 +183,8 @@ def get_group_detail(group_id):
     return jsonify({
         'id': group.id,
         'name': group.name,
+        'creator_id': group.creator_id,
+        'is_creator': group.creator_id == current_user.id,
         'members': members,
         'pending_transactions': transactions,
         'current_user': current_user.username,
@@ -246,17 +293,31 @@ def vote_transaction(transaction_id):
 
     existing = AuraTransactionVote.query.filter_by(transaction_id=transaction_id, user_id=user.id).first()
     if existing:
-        return jsonify({'error': 'Already voted'}), 400
+        # Allow changing vote
+        old_approval = existing.approval
+        existing.approval = bool(approval)
+        # Update counts based on vote change
+        if old_approval != bool(approval):
+            if old_approval:
+                # Was approve, now reject
+                transaction.approvals_count = max(0, (transaction.approvals_count or 0) - 1)
+                transaction.rejections_count = (transaction.rejections_count or 0) + 1
+            else:
+                # Was reject, now approve
+                transaction.rejections_count = max(0, (transaction.rejections_count or 0) - 1)
+                transaction.approvals_count = (transaction.approvals_count or 0) + 1
+    else:
+        vote = AuraTransactionVote(transaction_id=transaction_id, user_id=user.id, approval=bool(approval))
+        db.session.add(vote)
+        if bool(approval):
+            transaction.approvals_count = (transaction.approvals_count or 0) + 1
+        else:
+            transaction.rejections_count = (transaction.rejections_count or 0) + 1
 
-    vote = AuraTransactionVote(transaction_id=transaction_id, user_id=user.id, approval=bool(approval))
-    db.session.add(vote)
     db.session.flush()
 
-    approvals = AuraTransactionVote.query.filter_by(transaction_id=transaction_id, approval=True).count()
-    rejections = AuraTransactionVote.query.filter_by(transaction_id=transaction_id, approval=False).count()
-
-    transaction.approvals_count = approvals
-    transaction.rejections_count = rejections
+    approvals = transaction.approvals_count or 0
+    rejections = transaction.rejections_count or 0
 
     group_size = GroupMember.query.filter_by(group_id=transaction.group_id).count()
 
@@ -269,4 +330,3 @@ def vote_transaction(transaction_id):
 
     db.session.commit()
     return jsonify({'status': transaction.status, 'approvals': approvals, 'rejections': rejections}), 200
-

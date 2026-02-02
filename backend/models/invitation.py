@@ -12,6 +12,6 @@ class Invitation(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     # Relationships
-    group = db.relationship('Group', backref=db.backref('invitations', lazy=True))
-    invited_user = db.relationship('User', foreign_keys=[invited_user_id], backref='received_invitations')
-    inviter = db.relationship('User', foreign_keys=[inviter_id], backref='sent_invitations')
+    group = db.relationship('Group', back_populates='invitations')
+    invited_user = db.relationship('User', foreign_keys=[invited_user_id], back_populates='received_invitations')
+    inviter = db.relationship('User', foreign_keys=[inviter_id], back_populates='sent_invitations')

@@ -1,17 +1,15 @@
 from flask import Blueprint, jsonify, request
-from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     get_jwt,
 )
-from app import jwt
 
 from db.db import db
+from extensions import bcrypt, jwt
 from models.user import User
 
 auth_bp = Blueprint('auth_routes', __name__)
-bcrypt = Bcrypt()
 jwt_blacklist = set()
 
 
@@ -79,3 +77,24 @@ def signout():
     jti = get_jwt()['jti']
     jwt_blacklist.add(jti)
     return jsonify({'message': 'User signed out successfully'}), 200
+
+
+@auth_bp.route('/users/search', methods=['GET'])
+@jwt_required()
+def search_users():
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 2:
+        return jsonify([]), 200
+
+    users = User.query.filter(
+        User.username.ilike(f'%{query}%')
+    ).limit(10).all()
+
+    return jsonify([
+        {
+            'username': u.username,
+            'first_name': u.first_name,
+            'last_name': u.last_name,
+        }
+        for u in users
+    ]), 200
